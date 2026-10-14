@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Simulasi Sel Volta</title>
+<style>
+:root{--bg:#F7F4FB;--card:#FFFFFF;--ink:#24143A;--mute:#6B5B80;--line:#DCCDEB;--plum:#3A2161;--pink:#E0518F;--teal:#2A9D8F;--blue:#3D6FB6;--glass:#FFFFFF;--stage:#FFFFFF;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17102A;--card:#231A3A;--ink:#F1EAFB;--mute:#B7A8CF;--line:#3D3059;--plum:#CDB8F5;--pink:#FF7DB4;--teal:#4FD1C0;--blue:#7FB0F0;--glass:#2B2145;--stage:#1E1634}}
+:root[data-theme="dark"]{--bg:#17102A;--card:#231A3A;--ink:#F1EAFB;--mute:#B7A8CF;--line:#3D3059;--plum:#CDB8F5;--pink:#FF7DB4;--teal:#4FD1C0;--blue:#7FB0F0;--glass:#2B2145;--stage:#1E1634}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 40px}
+h1{font:700 28px/1.2 Cambria,Georgia,serif;color:var(--plum);margin:0 0 4px}
+.sub{color:var(--mute);margin:0 0 18px}
+.grid{display:grid;grid-template-columns:1.5fr 1fr;gap:16px}
+@media(max-width:820px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+svg{width:100%;height:auto;display:block;background:var(--stage);border-radius:10px}
+.ctl{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+@media(max-width:520px){.ctl{grid-template-columns:1fr}}
+.ctl label{display:block;font-weight:600;margin-bottom:4px}
+select,input[type=range]{width:100%}
+select{font:inherit;padding:8px;border-radius:8px;border:1px solid var(--line);background:var(--glass);color:var(--ink)}
+input[type=range]{accent-color:var(--pink)}
+.val{font-weight:700;color:var(--pink)}
+.chk{display:flex;gap:8px;align-items:center;margin-top:14px;font-weight:600}
+.chk input{width:20px;height:20px;accent-color:var(--pink)}
+.row{padding:10px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.k{font-size:13px;color:var(--mute)}
+.v{font-size:18px;font-weight:600}
+.an{color:var(--pink)}.ka{color:var(--blue)}
+.big{font:700 34px/1 Cambria,Georgia,serif;color:var(--plum)}
+.badge{display:inline-block;padding:2px 10px;border-radius:99px;font-size:14px;font-weight:700;color:#fff}
+.ok{background:var(--teal)}.no{background:#C0455A}
+.tip{font-size:14px;color:var(--mute);margin-top:14px}
+.tasks{margin:0;padding-left:20px}
+button.sm{font:inherit;border:1px solid var(--line);background:var(--glass);color:var(--ink);padding:6px 10px;border-radius:8px;cursor:pointer;margin:4px 4px 0 0}
+button.sm:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Simulasi Sel Volta</h1>
+  <p class="sub">Pilih dua logam, ubah konsentrasi larutan, lalu amati voltmeter, aliran elektron, dan reaksinya.</p>
+  <div class="grid">
+    <div class="card">
+      <svg id="svg" viewBox="0 0 720 400" role="img" aria-label="Rangkaian sel volta dengan dua gelas, jembatan garam, kawat, dan voltmeter"></svg>
+      <div class="ctl">
+        <div>
+          <label for="mL">Logam kiri</label>
+          <select id="mL"></select>
+          <label for="cL" style="margin-top:10px">Konsentrasi larutan kiri: <span class="val" id="vL"></span></label>
+          <input id="cL" type="range" min="-2" max="0.3" step="0.05" value="0">
+        </div>
+        <div>
+          <label for="mR">Logam kanan</label>
+          <select id="mR"></select>
+          <label for="cR" style="margin-top:10px">Konsentrasi larutan kanan: <span class="val" id="vR"></span></label>
+          <input id="cR" type="range" min="-2" max="0.3" step="0.05" value="0">
+        </div>
+      </div>
+      <label class="chk"><input id="br" type="checkbox" checked> Pasang jembatan garam</label>
+      <div>
+        <span class="k">Coba pasangan:</span>
+        <button class="sm" data-p="Zn,Cu">Zn–Cu</button>
+        <button class="sm" data-p="Mg,Ag">Mg–Ag</button>
+        <button class="sm" data-p="Ni,Ag">Ni–Ag</button>
+        <button class="sm" data-p="Al,Cu">Al–Cu</button>
+        <button class="sm" data-p="Fe,Cu">Fe–Cu</button>
+      </div>
+    </div>
+    <div class="card" aria-live="polite">
+      <div class="row"><div class="k">Anode (−), oksidasi</div><div class="v an" id="oA"></div></div>
+      <div class="row"><div class="k">Katode (+), reduksi</div><div class="v ka" id="oK"></div></div>
+      <div class="row"><div class="k">Reaksi sel</div><div class="v" id="oS"></div></div>
+      <div class="row"><div class="k">Notasi sel</div><div class="v" id="oN"></div></div>
+      <div class="row"><div class="k">E°sel = E°katode − E°anode</div><div class="v" id="oE0"></div></div>
+      <div class="row"><div class="k">Beda potensial pada voltmeter</div><div class="big" id="oE"></div><div style="margin-top:6px" id="oSp"></div></div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <strong>Tugas pengamatan</strong>
+    <ol class="tasks">
+      <li>Pilih Zn–Cu. Lepas jembatan garam. Apa yang terjadi pada voltmeter dan elektron? Mengapa?</li>
+      <li>Pasang lagi jembatan garam, lalu coba tiga pasangan logam. Pasangan mana yang menghasilkan beda potensial terbesar?</li>
+      <li>Ubah konsentrasi larutan kanan dari 1 M menjadi 0,01 M. Apakah angka voltmeter berubah? Seberapa besar?</li>
+      <li>Pilih dua logam yang sama. Berapa angka voltmeternya? Apa artinya?</li>
+    </ol>
+    <p class="tip">Catatan: E°sel dihitung dari data potensial reduksi standar (1 M, 25 °C). Angka pada voltmeter memakai persamaan Nernst sebagai pengayaan, jadi nilainya berubah mengikuti konsentrasi.</p>
+  </div>
+</div>
+<script>
+const M={Mg:{e:-2.37,z:2,c:'#B9BFCA',s:'#DCCDF3'},Al:{e:-1.66,z:3,c:'#C9CED6',s:'#DCCDF3'},Zn:{e:-0.76,z:2,c:'#9AA0A6',s:'#DCCDF3'},Fe:{e:-0.44,z:2,c:'#6F7480',s:'#CFE3A6'},Ni:{e:-0.25,z:2,c:'#8C95A0',s:'#9FD8A8'},Cu:{e:0.34,z:2,c:'#C97B4A',s:'#7FB5E8'},Ag:{e:0.80,z:1,c:'#D7DCE3',s:'#E4E8EE'}};
+const $=id=>document.getElementById(id);
+const names=Object.keys(M);
+['mL','mR'].forEach((id,i)=>{$(id).innerHTML=names.map(n=>`<option>${n}</option>`).join('');$(id).value=i?'Cu':'Zn'});
+const ion=m=>`${m}<sup>${M[m].z>1?M[m].z:''}+</sup>`;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const fmt=(x,d=2)=>x.toFixed(d).replace('.',',');
+const cf=v=>Math.pow(10,+v);
+const cs=c=>c>=1?fmt(c,c>=1.995?1:2):fmt(c,c<0.1?3:2);
+let S={};
+function calc(){
+  const L=$('mL').value,R=$('mR').value,cL=cf($('cL').value),cR=cf($('cR').value);
+  $('vL').textContent=cs(cL)+' M';$('vR').textContent=cs(cR)+' M';
+  let leftAnode=M[L].e<=M[R].e;
+  const A=leftAnode?L:R,K=leftAnode?R:L,cA=leftAnode?cL:cR,cK=leftAnode?cR:cL;
+  const za=M[A].z,zk=M[K].z,n=za*zk/gcd(za,zk),ca=n/za,ck=n/zk;
+  const E0=M[K].e-M[A].e,Q=Math.pow(cA,ca)/Math.pow(cK,ck);
+  const E=E0-0.0592/n*Math.log10(Q);
+  const on=$('br').checked;
+  const co=k=>k>1?k:'';
+  $('oA').innerHTML=`${co(ca)}${A} → ${co(ca)}${ion(A)} + ${n}e<sup>−</sup>`;
+  $('oK').innerHTML=`${co(ck)}${ion(K)} + ${n}e<sup>−</sup> → ${co(ck)}${K}`;
+  $('oS').innerHTML=`${co(ca)}${A} + ${co(ck)}${ion(K)} → ${co(ca)}${ion(A)} + ${co(ck)}${K}`;
+  $('oN').innerHTML=`${A} | ${ion(A)} || ${ion(K)} | ${K}`;
+  $('oE0').textContent=`(${M[K].e>=0?'+':''}${fmt(M[K].e)}) − (${M[A].e>=0?'+':''}${fmt(M[A].e)}) = ${fmt(E0)} V`;
+  const flow=on&&E>0.005;
+  $('oE').textContent=(on?fmt(Math.max(E,0)):'0,00')+' V';
+  $('oSp').innerHTML=!on?'<span class="badge no">Rangkaian terbuka: jembatan garam dilepas</span>':(E0<=0?'<span class="badge no">Dua logam sama: E°sel = 0</span>':(flow?'<span class="badge ok">E°sel positif: reaksi spontan</span>':'<span class="badge no">Beda potensial hampir nol</span>'));
+  S={L,R,A,K,leftAnode,cL,cR,flow,E:Math.max(E,0),on,anodeIsLeft:leftAnode};
+  draw();
+}
+function poly(pts,d){let t=0;const sg=[];for(let i=0;i<pts.length-1;i++){const l=Math.hypot(pts[i+1][0]-pts[i][0],pts[i+1][1]-pts[i][1]);sg.push(l);t+=l}d=((d%1)+1)%1*t;for(let i=0;i<sg.length;i++){if(d<=sg[i]){const f=d/sg[i];return[pts[i][0]+f*(pts[i+1][0]-pts[i][0]),pts[i][1]+f*(pts[i+1][1]-pts[i][1])]}d-=sg[i]}return pts[pts.length-1]}
+const parts=Array.from({length:14},()=>({x:Math.random(),y:Math.random()}));
+const reduce=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let T=0;
+function draw(){
+  const {L,R,leftAnode,cL,cR,flow,on,E}=S;
+  const Ax=leftAnode?138:598,Kx=leftAnode?598:138;
+  const nz=c=>Math.max(3,Math.round(3+11*(Math.log10(c)+2)/2.3));
+  const op=c=>(0.25+0.5*(Math.log10(c)+2)/2.3).toFixed(2);
+  let s='';
+  s+=`<rect x="60" y="200" width="230" height="170" rx="6" fill="${M[L].s}" fill-opacity="${op(cL)}" stroke="var(--ink)" stroke-width="3"/>`;
+  s+=`<rect x="430" y="200" width="230" height="170" rx="6" fill="${M[R].s}" fill-opacity="${op(cR)}" stroke="var(--ink)" stroke-width="3"/>`;
+  [[L,cL,60,leftAnode],[R,cR,430,!leftAnode]].forEach(([m,c,x0,isA])=>{
+    const ex=x0===60?138:598;
+    for(let i=0;i<nz(c);i++){const p=parts[i];let u=(p.x+(reduce?0:T*0.06*(isA?1:-1)*(flow?1:0.2)))%1;u=(u+1)%1;
+      const px=x0+20+u*190,py=215+p.y*140;
+      s+=`<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="5" fill="${isA?'var(--pink)':'var(--blue)'}" fill-opacity=".75"/>`}
+    s+=`<text x="${x0+115}" y="362" text-anchor="middle" font-size="14" fill="var(--ink)">${m}²⁺ ${cs(c)} M</text>`;
+  });
+  [[L,138,leftAnode],[R,598,!leftAnode]].forEach(([m,x,isA])=>{
+    s+=`<rect x="${x-8}" y="110" width="16" height="${isA?220:224}" rx="2" fill="${M[m].c}" stroke="var(--ink)" stroke-width="1.5"/>`;
+    s+=`<text x="${x}" y="100" text-anchor="middle" font-size="16" font-weight="700" fill="var(--ink)">${m}</text>`;
+    s+=`<text x="${x}" y="${isA?392:392}" text-anchor="middle" font-size="13" font-weight="700" fill="${isA?'var(--pink)':'var(--blue)'}">${isA?'ANODE (−)':'KATODE (+)'}</text>`;
+  });
+  s+=`<polyline points="138,110 138,60 360,60" fill="none" stroke="var(--ink)" stroke-width="3"/><polyline points="360,60 598,60 598,110" fill="none" stroke="var(--ink)" stroke-width="3"/>`;
+  if(on){
+    s+=`<path d="M232 280 V176 H488 V280" fill="none" stroke="#D9A21B" stroke-width="22" stroke-linejoin="round"/><path d="M232 280 V176 H488 V280" fill="none" stroke="var(--ink)" stroke-width="1.5" opacity=".6"/>`;
+    s+=`<text x="360" y="168" text-anchor="middle" font-size="13" font-weight="700" fill="var(--ink)">jembatan garam</text>`;
+    if(flow)for(let i=0;i<3;i++){
+      const pa=poly([[488,280],[488,176],[232,176],[232,280]],(reduce?i/3:T*0.05)+i/3); // anion toward anode side
+      const pk=poly([[232,280],[232,176],[488,176],[488,280]],(reduce?i/3:T*0.05)+i/3);
+      const anionToLeft=leftAnode;
+      const a=anionToLeft?poly([[488,280],[488,176],[232,176],[232,280]],T*0.05+i/3):poly([[232,280],[232,176],[488,176],[488,280]],T*0.05+i/3);
+      const k=anionToLeft?poly([[232,280],[232,176],[488,176],[488,280]],T*0.05+i/3+0.15):poly([[488,280],[488,176],[232,176],[232,280]],T*0.05+i/3+0.15);
+      s+=`<circle cx="${a[0]}" cy="${a[1]}" r="7" fill="var(--teal)"/><text x="${a[0]}" y="${a[1]+4}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">−</text>`;
+      s+=`<circle cx="${k[0]}" cy="${k[1]}" r="7" fill="var(--pink)"/><text x="${k[0]}" y="${k[1]+4}" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">+</text>`;
+    }
+  }
+  s+=`<circle cx="360" cy="60" r="34" fill="var(--glass)" stroke="var(--ink)" stroke-width="3"/><text x="360" y="54" text-anchor="middle" font-size="20" font-weight="700" fill="var(--ink)">V</text><text x="360" y="74" text-anchor="middle" font-size="13" font-weight="700" fill="var(--blue)">${on?fmt(E):'0,00'}</text>`;
+  if(flow){for(let i=0;i<6;i++){const p=poly([[Ax,110],[Ax,60],[Kx,60],[Kx,110]],(reduce?i/6:T*0.04)+i/6);s+=`<circle cx="${p[0]}" cy="${p[1]}" r="6" fill="#F2B134" stroke="#B8860B"/>`}
+    s+=`<text x="${(Ax+Kx)/2}" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="var(--pink)">elektron mengalir ${leftAnode?'kiri → kanan':'kanan → kiri'}</text>`}
+  else s+=`<text x="360" y="28" text-anchor="middle" font-size="14" font-weight="700" fill="var(--mute)">tidak ada aliran elektron</text>`;
+  $('svg').innerHTML=s;
+}
+['mL','mR','cL','cR','br'].forEach(id=>$(id).addEventListener('input',calc));
+document.querySelectorAll('button[data-p]').forEach(b=>b.addEventListener('click',()=>{const[a,c]=b.dataset.p.split(',');$('mL').value=a;$('mR').value=c;$('cL').value=0;$('cR').value=0;$('br').checked=true;calc()}));
+calc();
+if(!reduce)(function loop(){T+=1/60;draw();requestAnimationFrame(loop)})();
+</script>
+</body>
+</html>
